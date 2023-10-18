@@ -4,8 +4,101 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Events Page</title>
+    <style>
+        .event-card {
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            padding: 10px;
+            margin: 10px;
+            width: 300px;
+            display: inline-block;
+        }
+
+        .event-card img {
+            max-width: 100%;
+            height: auto;
+        }
+
+        .filter-select {
+            margin-bottom: 20px;
+        }
+    </style>
 </head>
 <body>
+    <h1>Events</h1>
     
+    <!-- Filtering by Category -->
+    <label for="category-filter">Filter by Category:</label>
+    <select id="category-filter" class="filter-select">
+        <option value="">All</option>
+        <option value="Music">Music</option>
+        <option value="Sports">Sports</option>
+        <option value="Workshop">Workshop</option>
+    </select>
+    
+    <!-- Sorting by Price -->
+    <label for="price-sort">Sort by Price:</label>
+    <select id="price-sort" class="filter-select">
+        <option value="">Select</option>
+        <option value="asc">Ascending</option>
+        <option value="desc">Descending</option>
+    </select>
+    
+    <div id="event-cards"></div>
+
+    <script>
+        const eventCardsContainer = document.getElementById("event-cards");
+        const categoryFilter = document.getElementById("category-filter");
+        const priceSort = document.getElementById("price-sort");
+
+        // Function to fetch and render events
+        function fetchAndRenderEvents() {
+            let apiUrl = "https://event-management-api-14iw.onrender.com/events";
+
+            // Filter by category
+            const selectedCategory = categoryFilter.value;
+            if (selectedCategory) {
+                apiUrl += `?category=${selectedCategory}`;
+            }
+
+            // Sort by price
+            const selectedSort = priceSort.value;
+            if (selectedSort) {
+                apiUrl += `&_sort=price&_order=${selectedSort}`;
+            }
+
+            fetch(apiUrl)
+                .then(response => response.json())
+                .then(events => {
+                    renderEventCards(events);
+                })
+                .catch(error => {
+                    console.error("Error fetching events:", error);
+                });
+        }
+
+        // Event listeners for filtering and sorting
+        categoryFilter.addEventListener("change", fetchAndRenderEvents);
+        priceSort.addEventListener("change", fetchAndRenderEvents);
+
+        // Function to render event cards
+        function renderEventCards(events) {
+            eventCardsContainer.innerHTML = "";
+            events.forEach(event => {
+                const card = document.createElement("div");
+                card.className = "event-card";
+                card.innerHTML = `
+                    <img src="${event.poster}" alt="${event.name}">
+                    <h2>${event.name}</h2>
+                    <p>Date: ${event.date}</p>
+                    <p>Location: ${event.location}</p>
+                    <p>Category: ${event.category}</p>
+                    <p>Price: $${event.price}</p>
+                `;
+                eventCardsContainer.appendChild(card);
+            });
+        }
+        fetchAndRenderEvents();
+    </script>
 </body>
 </html>
