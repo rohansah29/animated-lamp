@@ -55,16 +55,16 @@
         function fetchAndRenderEvents() {
             let apiUrl = "https://event-management-api-14iw.onrender.com/events";
 
-            // Filter by category
             const selectedCategory = categoryFilter.value;
-            if (selectedCategory) {
-                apiUrl += `?category=${selectedCategory}`;
-            }
-
-            // Sort by price
             const selectedSort = priceSort.value;
-            if (selectedSort) {
+
+            if(selectedCategory && selectedSort){
+                apiUrl += `?category=${selectedCategory}`;
                 apiUrl += `&_sort=price&_order=${selectedSort}`;
+            }else if (selectedCategory) {
+                apiUrl += `?category=${selectedCategory}`;
+            }else if (selectedSort) {
+                apiUrl += `?_sort=price&_order=${selectedSort}`;
             }
 
             fetch(apiUrl)
