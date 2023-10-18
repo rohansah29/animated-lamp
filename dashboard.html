@@ -1,11 +1,346 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Admin Dashboard</title>
-</head>
-<body>
-    <h1>Admin Dashboard</h1>
-</body>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background-color: #f0f0f0;
+        margin: 0;
+        padding: 0;
+      }
+
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+      }
+
+      h1 {
+        text-align: center;
+        color: #333;
+      }
+
+      form {
+        background-color: #fff;
+        padding: 20px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        margin-bottom: 20px;
+      }
+
+      label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: bold;
+      }
+
+      input[type="text"],
+      input[type="date"],
+      input[type="number"],
+      select {
+        width: 100%;
+        padding: 10px;
+        margin-bottom: 10px;
+        border: 1px solid #ccc;
+        border-radius: 3px;
+      }
+
+      button[type="submit"] {
+        background-color: #333;
+        color: #fff;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 3px;
+        cursor: pointer;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 20px;
+      }
+
+      table,
+      th,
+      td {
+        border: 1px solid #ccc;
+      }
+
+      th,
+      td {
+        padding: 10px;
+        text-align: left;
+      }
+
+      th {
+        background-color: #333;
+        color: #fff;
+      }
+
+      button {
+        background-color: #ff3333;
+        color: #fff;
+        border: none;
+        padding: 5px 10px;
+        cursor: pointer;
+        border-radius: 3px;
+      }
+
+      button.edit {
+        background-color: #33cc33;
+      }
+
+      .modal {
+        display: none;
+        position: fixed;
+        z-index: 1;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.7);
+      }
+
+      .modal-content {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background-color: #fff;
+        padding: 20px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+      }
+
+      .close {
+        color: #aaa;
+        float: right;
+        font-size: 28px;
+        font-weight: bold;
+        cursor: pointer;
+      }
+
+      .close:hover {
+        color: #333;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>Admin Dashboard</h1>
+      <div>
+        <form id="dataForm">
+          <label for="image">Image URL:</label>
+          <input type="text" id="img" />
+
+          <label for="name">Name:</label>
+          <input type="text" id="name" />
+
+          <label for="description">Description:</label>
+          <input type="text" id="description" />
+
+          <label for="date">Date:</label>
+          <input type="date" id="date" />
+
+          <label for="location">Location:</label>
+          <input type="text" id="location" />
+
+          <select id="category">
+            <option value="Music">Music</option>
+            <option value="Sports">Sports</option>
+            <option value="Workshop">Workshop</option>
+          </select>
+
+          <label for="price">Price:</label>
+          <input type="number" id="price" />
+
+          <button type="submit">Submit</button>
+        </form>
+      </div>
+      <div id="display">
+        <table>
+          <thead>
+            <tr>
+              <th>Name of the Event</th>
+              <th>Date</th>
+              <th>Location</th>
+              <th>Category</th>
+              <th>Price</th>
+              <th>Edit</th>
+              <th>Delete</th>
+            </tr>
+          </thead>
+          <tbody id="eventTable"></tbody>
+        </table>
+      </div>
+      <div id="editModal" class="modal">
+        <div class="modal-content">
+          <span class="close" id="closeModal" onclick="closeEditModal()"
+            >&times;</span
+          >
+          <h2>Edit Event</h2>
+          <form id="editForm">
+            <input type="hidden" id="editEventId" />
+            <label for="editName">Name:</label>
+            <input type="text" id="editName" />
+            <label for="editDate">Date:</label>
+            <input type="date" id="editDate" />
+            <label for="editLocation">Location:</label>
+            <input type="text" id="editLocation" />
+            <select id="editCategory">
+              <option value="Music">Music</option>
+              <option value="Sports">Sports</option>
+              <option value="Workshop">Workshop</option>
+            </select>
+            <label for="editPrice">Price:</label>
+            <input type="number" id="editPrice" />
+            <button type="button" onclick="updateEvent()">Save</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </body>
+  <script>
+    closeEditModal();
+    const eventTable = document.getElementById("eventTable");
+
+    fetch("https://event-management-api-14iw.onrender.com/events")
+      .then((res) => res.json())
+      .then((data) => {
+        data.forEach((event) => {
+          const row = document.createElement("tr");
+          row.id = event.id;
+          row.innerHTML = `
+              <td>${event.name}</td>
+              <td>${event.date}</td>
+              <td>${event.location}</td>
+              <td>${event.category}</td>
+              <td>${event.price}</td>
+              <td><button onclick="openEditModal(${event.id})">Edit</button></td>
+              <td><button id="del" onclick="deletingItem(${event.id})">Delete</button></td>
+            `;
+          eventTable.appendChild(row);
+        });
+      })
+      .catch((error) => {
+        console.error("Error:", error);
+      });
+
+    function deletingItem(id) {
+      let eventRow = document.getElementById(`${id}`);
+      if (eventRow) {
+        eventRow.remove();
+      }
+      fetch(`https://event-management-api-14iw.onrender.com/events/${id}`, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      })
+        .then((res) => {
+          if (res.ok) {
+            console.log("Event deleted successfully");
+          } else {
+            console.error("Failed to delete the event");
+          }
+        })
+        .catch((error) => {
+          console.error("Error:", error);
+        });
+    }
+
+    function openEditModal(id) {
+      const editModal = document.getElementById("editModal");
+      editModal.style.display = "block";
+      fetch(`https://event-management-api-14iw.onrender.com/events/${id}`)
+        .then((response) => response.json())
+        .then((event) => {
+          document.getElementById("editEventId").value = event.id;
+          document.getElementById("editName").value = event.name;
+          document.getElementById("editDate").value = event.date;
+          document.getElementById("editLocation").value = event.location;
+          document.getElementById("editCategory").value = event.category;
+          document.getElementById("editPrice").value = event.price;
+        })
+        .catch((error) => {
+          console.error("Error:", error);
+        });
+    }
+
+    function closeEditModal() {
+      const editModal = document.getElementById("editModal");
+      editModal.style.display = "none";
+    }
+
+    function updateEvent() {
+      let id = document.getElementById("editEventId").value;
+      const updatedEventData = {
+        name: document.getElementById("editName").value,
+        date: document.getElementById("editDate").value,
+        location: document.getElementById("editLocation").value,
+        category: document.getElementById("editCategory").value,
+        price: document.getElementById("editPrice").value,
+      };
+
+      fetch(`https://event-management-api-14iw.onrender.com/events/${id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(updatedEventData),
+      })
+        .then((res) => {
+          if (res.ok) {
+            alert("Event data updated successfully");
+            closeEditModal();
+            window.location.reload();
+          } else {
+            console.error("Failed to update the event");
+          }
+        })
+        .catch((error) => {
+          console.error("Error:", error);
+        });
+    }
+
+    let formData = document.getElementById("dataForm");
+
+    formData.addEventListener("submit", (e) => {
+      e.preventDefault();
+
+      let poster = document.getElementById("img").value;
+      let name = document.getElementById("name").value;
+      let description = document.getElementById("description").value;
+      let date = document.getElementById("date").value;
+      let location = document.getElementById("location").value;
+      let category = document.getElementById("category").value;
+      let price = document.getElementById("price").value;
+
+      fetch(`https://event-management-api-14iw.onrender.com/events`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          poster,
+          name,
+          description,
+          date,
+          location,
+          category,
+          price,
+        }),
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          console.log(data);
+          alert("Data Stored Successfully!!");
+          formData.reset();
+          window.location.reload();
+        });
+    });
+  </script>
 </html>
